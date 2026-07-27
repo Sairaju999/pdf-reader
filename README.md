@@ -1,14 +1,14 @@
 ---
-title: PDF MindReader Bot
+title: PDF Reader
 emoji: 📄
-colorFrom: indigo
-colorTo: purple
+colorFrom: blue
+colorTo: slate
 sdk: gradio
 app_file: app.py
 pinned: false
 ---
 
-# PDF Q&A Bot
+# PDF Reader
 
 Upload a PDF, ask questions in plain English, get answers with page citations.
 

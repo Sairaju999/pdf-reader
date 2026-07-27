@@ -122,37 +122,37 @@ def process_pdf(file, chunk_size):
         filename = os.path.basename(file_path)
         num_chunks = len(chunks)
         
-        # Build metrics HTML dashboard
+        # Build clean metrics dashboard
         metrics_html = f"""
-        <div class="metric-container" style="display: flex; justify-content: space-around; gap: 16px; margin: 10px 0 20px 0;">
-            <div class="metric-card" style="flex: 2; background: rgba(30, 41, 59, 0.55); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 16px; text-align: center; backdrop-filter: blur(8px); box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);">
-                <div class="metric-value" style="font-size: 1.1rem; font-weight: 700; color: #e2e8f0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 5px;">📄 {filename}</div>
-                <div class="metric-label" style="font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 4px;">Document Name</div>
+        <div style="display: flex; gap: 12px; margin: 16px 0; flex-wrap: wrap;">
+            <div style="flex: 2; min-width: 200px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                <div style="font-size: 1rem; font-weight: 600; color: #1e293b; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">📄 {filename}</div>
+                <div style="font-size: 0.75rem; color: #64748b; text-transform: uppercase; font-weight: 500; margin-top: 4px;">Document</div>
             </div>
-            <div class="metric-card" style="flex: 1; background: rgba(30, 41, 59, 0.55); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 16px; text-align: center; backdrop-filter: blur(8px); box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);">
-                <div class="metric-value" style="font-size: 1.8rem; font-weight: 700; color: #a78bfa;">{page_count}</div>
-                <div class="metric-label" style="font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 4px;">Total Pages</div>
+            <div style="flex: 1; min-width: 100px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                <div style="font-size: 1.5rem; font-weight: 700; color: #2563eb;">{page_count}</div>
+                <div style="font-size: 0.75rem; color: #64748b; text-transform: uppercase; font-weight: 500; margin-top: 4px;">Pages</div>
             </div>
-            <div class="metric-card" style="flex: 1; background: rgba(30, 41, 59, 0.55); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 16px; text-align: center; backdrop-filter: blur(8px); box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);">
-                <div class="metric-value" style="font-size: 1.8rem; font-weight: 700; color: #a78bfa;">{num_chunks}</div>
-                <div class="metric-label" style="font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 4px;">Text Segments</div>
+            <div style="flex: 1; min-width: 100px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                <div style="font-size: 1.5rem; font-weight: 700; color: #2563eb;">{num_chunks}</div>
+                <div style="font-size: 0.75rem; color: #64748b; text-transform: uppercase; font-weight: 500; margin-top: 4px;">Text Chunks</div>
             </div>
         </div>
         """
         return metrics_html, gr.update(visible=True)
     except Exception as e:
-        error_html = f"<div style='color: #ef4444; font-weight: 600; padding: 10px; background: rgba(239, 68, 68, 0.1); border-radius: 8px; border: 1px solid rgba(239, 68, 68, 0.2);'>Error indexing PDF: {str(e)}</div>"
+        error_html = f"<div style='color: #dc2626; font-weight: 500; padding: 12px; background: #fef2f2; border-radius: 8px; border: 1px solid #fee2e2;'>Error indexing PDF: {str(e)}</div>"
         return error_html, gr.update(visible=False)
 
 
 def query_pdf(question, api_key, model, top_k):
     resolved_api_key = api_key.strip() or os.environ.get("ANTHROPIC_API_KEY", "")
     if not resolved_api_key:
-        warning_html = "<div style='color: #f59e0b; padding: 12px; font-weight: 600; background: rgba(245, 158, 11, 0.1); border-radius: 8px; border: 1px solid rgba(245, 158, 11, 0.2);'>Please configure your Anthropic API key in the sidebar configuration first.</div>"
+        warning_html = "<div style='color: #b45309; padding: 12px; font-weight: 500; background: #fffbeb; border-radius: 8px; border: 1px solid #fef3c7;'>Please enter your Anthropic API key in the configuration panel.</div>"
         return warning_html, ""
     
     if not question.strip():
-        return "<div style='color: #94a3b8; padding: 10px;'>Please enter a question.</div>", ""
+        return "<div style='color: #64748b; padding: 8px;'>Please enter a question.</div>", ""
         
     try:
         top_chunks = retrieve(question, k=int(top_k))
@@ -162,16 +162,16 @@ def query_pdf(question, api_key, model, top_k):
         sources_html = ""
         for doc, meta in top_chunks:
             sources_html += f"""
-            <div class="source-block" style="background: rgba(15, 23, 42, 0.35); border-left: 4px solid #6366f1; padding: 14px 18px; margin-bottom: 14px; border-radius: 0 10px 10px 0; border-top: 1px solid rgba(255, 255, 255, 0.03); border-right: 1px solid rgba(255, 255, 255, 0.03); border-bottom: 1px solid rgba(255, 255, 255, 0.03);">
-                <div class="source-page" style="font-weight: 600; color: #818cf8; margin-bottom: 6px;">Page {meta['page']}</div>
-                <div style="font-size: 0.95rem; line-height: 1.5; color: #cbd5e1;">{doc}</div>
+            <div style="background: #f8fafc; border-left: 3px solid #2563eb; padding: 12px 16px; margin-bottom: 10px; border-radius: 0 6px 6px 0; border: 1px solid #e2e8f0; border-left-width: 3px;">
+                <div style="font-weight: 600; color: #2563eb; font-size: 0.9rem; margin-bottom: 4px;">Page {meta['page']}</div>
+                <div style="font-size: 0.95rem; line-height: 1.5; color: #334155;">{doc}</div>
             </div>
             """
         
         formatted_answer = f"""
-        <div class="glass-card" style="background: rgba(30, 41, 59, 0.4); backdrop-filter: blur(16px); border-radius: 16px; padding: 24px; border: 1px solid rgba(255, 255, 255, 0.06); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3); margin-top: 20px;">
-            <h3 style="margin-top: 0; color: #e2e8f0; font-size: 1.25rem; font-weight: 600;">Answer</h3>
-            <div style="font-size: 1.05rem; line-height: 1.6; color: #e2e8f0;">
+        <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-top: 16px;">
+            <h3 style="margin-top: 0; color: #0f172a; font-size: 1.15rem; font-weight: 600; margin-bottom: 12px;">Answer</h3>
+            <div style="font-size: 1rem; line-height: 1.6; color: #1e293b;">
                 {format_citations(answer)}
             </div>
         </div>
@@ -179,67 +179,61 @@ def query_pdf(question, api_key, model, top_k):
         
         return formatted_answer, sources_html
     except Exception as e:
-        error_html = f"<div style='color: #ef4444; font-weight: 600; padding: 10px; background: rgba(239, 68, 68, 0.1); border-radius: 8px; border: 1px solid rgba(239, 68, 68, 0.2);'>Error: {str(e)}</div>"
+        error_html = f"<div style='color: #dc2626; font-weight: 500; padding: 12px; background: #fef2f2; border-radius: 8px; border: 1px solid #fee2e2;'>Error: {str(e)}</div>"
         return error_html, ""
 
 # ---------- Styling ----------
 
 custom_css = """
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 body, .gradio-container {
-    font-family: 'Outfit', sans-serif !important;
-    background: linear-gradient(135deg, #0b0f19 0%, #1e1b4b 100%) !important;
-    color: #e2e8f0 !important;
+    font-family: 'Inter', sans-serif !important;
+    background-color: #f8fafc !important;
+    color: #0f172a !important;
 }
 
 .main-header {
     text-align: center;
-    padding: 2rem 1rem;
-    margin-bottom: 2rem;
-    background: rgba(30, 41, 59, 0.25);
-    backdrop-filter: blur(10px);
-    border-radius: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.04);
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    padding: 1.5rem 1rem;
+    margin-bottom: 1.5rem;
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .main-title {
-    font-size: 2.75rem;
+    font-size: 2.25rem;
     font-weight: 700;
-    background: linear-gradient(135deg, #c084fc 0%, #818cf8 50%, #6366f1 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    margin-bottom: 0.5rem;
-    filter: drop-shadow(0 2px 8px rgba(99, 102, 241, 0.25));
+    color: #0f172a;
+    margin-bottom: 0.25rem;
 }
 
 .sub-title {
-    font-size: 1.1rem;
-    color: #94a3b8;
-    font-weight: 300;
+    font-size: 1rem;
+    color: #64748b;
+    font-weight: 400;
 }
 
 /* Page Citations badge */
 .page-tag {
-    background-color: rgba(167, 139, 250, 0.18);
-    color: #c084fc;
-    border: 1px solid rgba(167, 139, 250, 0.35);
-    padding: 2px 10px;
-    border-radius: 9999px;
-    font-size: 0.8rem;
+    background-color: #eff6ff;
+    color: #1d4ed8;
+    border: 1px solid #bfdbfe;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 0.825rem;
     font-weight: 600;
     display: inline-block;
-    margin-top: 4px;
-    margin-bottom: 4px;
-    box-shadow: 0 2px 4px rgba(167, 139, 250, 0.1);
+    margin: 2px 4px;
 }
 """
 
 header_html = """
 <div class="main-header">
-    <div class="main-title">📄 PDF MindReader</div>
-    <div class="sub-title">Upload a PDF, ask questions in plain English, and get answers with exact page citations.</div>
+    <div class="main-title">📄 PDF Reader</div>
+    <div class="sub-title">Upload a PDF, ask questions in plain English, and get answers with page citations.</div>
 </div>
 """
 
@@ -252,7 +246,7 @@ with gr.Blocks() as demo:
     with gr.Row():
         with gr.Column(scale=1):
             # Configuration settings sidebar
-            gr.Markdown("### ⚙️ Configuration")
+            gr.Markdown("### ⚙️ Settings")
             api_key_input = gr.Textbox(
                 label="Anthropic API Key",
                 type="password",
@@ -287,15 +281,15 @@ with gr.Blocks() as demo:
             
         with gr.Column(scale=2):
             # Main panel
-            file_input = gr.File(label="Choose a PDF document", file_types=[".pdf"])
+            file_input = gr.File(label="Upload PDF Document", file_types=[".pdf"])
             metrics_panel = gr.HTML()
             
             # Question section
             with gr.Group(visible=False) as query_group:
-                question_input = gr.Textbox(label="Ask a question about this document", placeholder="What would you like to know?")
-                submit_btn = gr.Button("Analyze and Answer")
+                question_input = gr.Textbox(label="Ask a question about this document", placeholder="Type your question here...")
+                submit_btn = gr.Button("Get Answer", variant="primary")
                 answer_panel = gr.HTML()
-                with gr.Accordion("Explore sources used", open=False):
+                with gr.Accordion("Sources used", open=False):
                     sources_panel = gr.HTML()
                     
     # Event listeners
@@ -323,6 +317,6 @@ if __name__ == "__main__":
         server_name="0.0.0.0",
         server_port=port,
         share=False,
-        theme=gr.themes.Soft(primary_hue="purple", secondary_hue="indigo", neutral_hue="slate"),
+        theme=gr.themes.Soft(primary_hue="blue", neutral_hue="slate"),
         css=custom_css
     )
