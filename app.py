@@ -122,37 +122,37 @@ def process_pdf(file, chunk_size):
         filename = os.path.basename(file_path)
         num_chunks = len(chunks)
         
-        # Build clean metrics dashboard
+        # Build clean black theme metrics dashboard
         metrics_html = f"""
         <div style="display: flex; gap: 12px; margin: 16px 0; flex-wrap: wrap;">
-            <div style="flex: 2; min-width: 200px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-                <div style="font-size: 1rem; font-weight: 600; color: #1e293b; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">📄 {filename}</div>
-                <div style="font-size: 0.75rem; color: #64748b; text-transform: uppercase; font-weight: 500; margin-top: 4px;">Document</div>
+            <div style="flex: 2; min-width: 200px; background: #09090b; border: 1px solid #27272a; border-radius: 8px; padding: 14px; text-align: center;">
+                <div style="font-size: 1rem; font-weight: 600; color: #f4f4f5; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">📄 {filename}</div>
+                <div style="font-size: 0.75rem; color: #a1a1aa; text-transform: uppercase; font-weight: 500; margin-top: 4px;">Document</div>
             </div>
-            <div style="flex: 1; min-width: 100px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-                <div style="font-size: 1.5rem; font-weight: 700; color: #2563eb;">{page_count}</div>
-                <div style="font-size: 0.75rem; color: #64748b; text-transform: uppercase; font-weight: 500; margin-top: 4px;">Pages</div>
+            <div style="flex: 1; min-width: 100px; background: #09090b; border: 1px solid #27272a; border-radius: 8px; padding: 14px; text-align: center;">
+                <div style="font-size: 1.5rem; font-weight: 700; color: #3b82f6;">{page_count}</div>
+                <div style="font-size: 0.75rem; color: #a1a1aa; text-transform: uppercase; font-weight: 500; margin-top: 4px;">Pages</div>
             </div>
-            <div style="flex: 1; min-width: 100px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-                <div style="font-size: 1.5rem; font-weight: 700; color: #2563eb;">{num_chunks}</div>
-                <div style="font-size: 0.75rem; color: #64748b; text-transform: uppercase; font-weight: 500; margin-top: 4px;">Text Chunks</div>
+            <div style="flex: 1; min-width: 100px; background: #09090b; border: 1px solid #27272a; border-radius: 8px; padding: 14px; text-align: center;">
+                <div style="font-size: 1.5rem; font-weight: 700; color: #3b82f6;">{num_chunks}</div>
+                <div style="font-size: 0.75rem; color: #a1a1aa; text-transform: uppercase; font-weight: 500; margin-top: 4px;">Text Chunks</div>
             </div>
         </div>
         """
         return metrics_html, gr.update(visible=True)
     except Exception as e:
-        error_html = f"<div style='color: #dc2626; font-weight: 500; padding: 12px; background: #fef2f2; border-radius: 8px; border: 1px solid #fee2e2;'>Error indexing PDF: {str(e)}</div>"
+        error_html = f"<div style='color: #ef4444; font-weight: 500; padding: 12px; background: #270f0f; border-radius: 8px; border: 1px solid #7f1d1d;'>Error indexing PDF: {str(e)}</div>"
         return error_html, gr.update(visible=False)
 
 
 def query_pdf(question, api_key, model, top_k):
     resolved_api_key = api_key.strip() or os.environ.get("ANTHROPIC_API_KEY", "")
     if not resolved_api_key:
-        warning_html = "<div style='color: #b45309; padding: 12px; font-weight: 500; background: #fffbeb; border-radius: 8px; border: 1px solid #fef3c7;'>Please enter your Anthropic API key in the configuration panel.</div>"
+        warning_html = "<div style='color: #f59e0b; padding: 12px; font-weight: 500; background: #291e0a; border-radius: 8px; border: 1px solid #78350f;'>Please enter your Anthropic API key in the configuration panel.</div>"
         return warning_html, ""
     
     if not question.strip():
-        return "<div style='color: #64748b; padding: 8px;'>Please enter a question.</div>", ""
+        return "<div style='color: #a1a1aa; padding: 8px;'>Please enter a question.</div>", ""
         
     try:
         top_chunks = retrieve(question, k=int(top_k))
@@ -162,16 +162,16 @@ def query_pdf(question, api_key, model, top_k):
         sources_html = ""
         for doc, meta in top_chunks:
             sources_html += f"""
-            <div style="background: #f8fafc; border-left: 3px solid #2563eb; padding: 12px 16px; margin-bottom: 10px; border-radius: 0 6px 6px 0; border: 1px solid #e2e8f0; border-left-width: 3px;">
-                <div style="font-weight: 600; color: #2563eb; font-size: 0.9rem; margin-bottom: 4px;">Page {meta['page']}</div>
-                <div style="font-size: 0.95rem; line-height: 1.5; color: #334155;">{doc}</div>
+            <div style="background: #09090b; border-left: 3px solid #3b82f6; padding: 12px 16px; margin-bottom: 10px; border-radius: 0 6px 6px 0; border: 1px solid #27272a; border-left-width: 3px;">
+                <div style="font-weight: 600; color: #60a5fa; font-size: 0.9rem; margin-bottom: 4px;">Page {meta['page']}</div>
+                <div style="font-size: 0.95rem; line-height: 1.5; color: #e4e4e7;">{doc}</div>
             </div>
             """
         
         formatted_answer = f"""
-        <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-top: 16px;">
-            <h3 style="margin-top: 0; color: #0f172a; font-size: 1.15rem; font-weight: 600; margin-bottom: 12px;">Answer</h3>
-            <div style="font-size: 1rem; line-height: 1.6; color: #1e293b;">
+        <div style="background: #09090b; border: 1px solid #27272a; border-radius: 8px; padding: 20px; margin-top: 16px;">
+            <h3 style="margin-top: 0; color: #f4f4f5; font-size: 1.15rem; font-weight: 600; margin-bottom: 12px;">Answer</h3>
+            <div style="font-size: 1rem; line-height: 1.6; color: #f4f4f5;">
                 {format_citations(answer)}
             </div>
         </div>
@@ -179,7 +179,7 @@ def query_pdf(question, api_key, model, top_k):
         
         return formatted_answer, sources_html
     except Exception as e:
-        error_html = f"<div style='color: #dc2626; font-weight: 500; padding: 12px; background: #fef2f2; border-radius: 8px; border: 1px solid #fee2e2;'>Error: {str(e)}</div>"
+        error_html = f"<div style='color: #ef4444; font-weight: 500; padding: 12px; background: #270f0f; border-radius: 8px; border: 1px solid #7f1d1d;'>Error: {str(e)}</div>"
         return error_html, ""
 
 # ---------- Styling ----------
@@ -187,40 +187,39 @@ def query_pdf(question, api_key, model, top_k):
 custom_css = """
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
-body, .gradio-container {
+html, body, .gradio-container {
     font-family: 'Inter', sans-serif !important;
-    background-color: #f8fafc !important;
-    color: #0f172a !important;
+    background-color: #000000 !important;
+    color: #f4f4f5 !important;
 }
 
 .main-header {
     text-align: center;
-    padding: 1.5rem 1rem;
+    padding: 1.75rem 1rem;
     margin-bottom: 1.5rem;
-    background: #ffffff;
+    background: #09090b !important;
     border-radius: 12px;
-    border: 1px solid #e2e8f0;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    border: 1px solid #27272a !important;
 }
 
 .main-title {
-    font-size: 2.25rem;
+    font-size: 2.5rem;
     font-weight: 700;
-    color: #0f172a;
-    margin-bottom: 0.25rem;
+    color: #ffffff !important;
+    margin-bottom: 0.3rem;
 }
 
 .sub-title {
     font-size: 1rem;
-    color: #64748b;
+    color: #a1a1aa !important;
     font-weight: 400;
 }
 
 /* Page Citations badge */
 .page-tag {
-    background-color: #eff6ff;
-    color: #1d4ed8;
-    border: 1px solid #bfdbfe;
+    background-color: #18181b;
+    color: #60a5fa;
+    border: 1px solid #2563eb;
     padding: 2px 8px;
     border-radius: 6px;
     font-size: 0.825rem;
@@ -317,6 +316,6 @@ if __name__ == "__main__":
         server_name="0.0.0.0",
         server_port=port,
         share=False,
-        theme=gr.themes.Soft(primary_hue="blue", neutral_hue="slate"),
+        theme=gr.themes.Base(primary_hue="blue", neutral_hue="neutral"),
         css=custom_css
     )
