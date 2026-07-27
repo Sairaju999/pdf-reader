@@ -2,52 +2,76 @@
 
 > **An ultra-fast, lightweight, and professional AI-powered PDF Q&A assistant built with FastAPI, PyMuPDF, BM25 Indexing, and Anthropic Claude.**
 
+🌐 **Live Application URL**: [https://pdf-reader-ik1o.onrender.com](https://pdf-reader-ik1o.onrender.com)
+
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/Sairaju999/pdf-reader)
+
+---
+
+## 📖 How The Project Works
+
+PDF Reader uses an end-to-end **Retrieval-Augmented Generation (RAG)** pipeline designed for speed, accuracy, and page-level attribution. Here is the step-by-step breakdown of how a document is processed and answered:
+
+```text
+┌─────────────────┐     ┌───────────────────────┐     ┌──────────────────────┐
+│ 1. PDF Upload   │ ──> │ 2. Text Extraction    │ ──> │ 3. BM25 Indexing     │
+│    (.pdf file)  │     │    (PyMuPDF / fitz)   │     │    (<0.05s in RAM)   │
+└─────────────────┘     └───────────────────────┘     └──────────────────────┘
+                                                                 │
+┌─────────────────┐     ┌───────────────────────┐                │
+│ 5. Cited Answer │ <── │ 4. Claude LLM Query   │ <──────────────┘
+│    (Page Badges)│     │    (claude-sonnet-4-6)│  Context Passages
+└─────────────────┘     └───────────────────────┘
+```
+
+### 1. Document Upload & Parsing (`PyMuPDF`)
+- When you upload a PDF file, the server reads the raw binary stream directly into memory.
+- Using **PyMuPDF (`fitz`)**, text is extracted page by page while preserving original page numbering.
+- Text is split into overlapping chunks (~1,000 characters each with a 100-character overlap) so context spanning page boundaries is preserved.
+
+### 2. Instant In-Memory Indexing (`BM25`)
+- Instead of relying on heavy local neural network embeddings (which take 30+ seconds on CPU), PDF Reader builds an **in-memory BM25 (Best Matching 25) ranker** in **less than 0.05 seconds**.
+- The BM25 algorithm computes Inverse Document Frequency (IDF) and term frequency weights for all terms in the document, creating a lightweight keyword index.
+
+### 3. Relevant Context Retrieval
+- When a user types a question (e.g., *"What are the main findings in Section 3?"*), the BM25 engine searches all indexed passages and ranks the top-5 most relevant passages matching the query terms.
+
+### 4. AI Reasoning & Citation Generation (`Anthropic Claude`)
+- The top-5 retrieved passages, complete with their page metadata `[Page X]`, are bundled into a structured prompt sent to Anthropic's Claude API (`claude-sonnet-4-6` or `claude-3-5-sonnet`).
+- Claude reasons over the retrieved context, constructs a detailed response, and inserts page citation tags like `(p.3)` for every claim.
+
+### 5. Interactive Frontend Rendering
+- The response is delivered to the custom single-page web interface.
+- Citation strings like `(p.3)` are automatically transformed into styled blue **`Page 3`** badges.
+- Users can click **View Cited Sources & Context** to inspect the raw passages used by Claude to generate the answer.
 
 ---
 
 ## ✨ Features
 
-- **⚡ Instant PDF Indexing (<0.05s)**: Uses PyMuPDF and an in-memory BM25 ranker to parse and index PDF documents instantaneously without heavy PyTorch/GPU overhead.
-- **💬 Smart Q&A with Citations**: Queries Anthropic Claude (`claude-sonnet-4-6` / `claude-3-5-sonnet`) with retrieved context and returns answers formatted with page tags (e.g. `Page 12`).
-- **🎨 Sleek Dark UI**: Built with a clean, responsive single-page HTML5, CSS3, and JavaScript interface—loading in milliseconds with zero framework bloat.
-- **🔍 Transparent Source Inspection**: Interactive collapsible accordion to inspect the exact retrieved passages and page numbers used to answer your question.
-- **🛡️ Built-in API Fallback**: Handles Anthropic API key model permissions gracefully with fallback support.
+- **⚡ Instant PDF Indexing (<0.05s)**: Upload and index large PDFs instantly with zero wait times.
+- **💬 Cited Page Answers**: Returns concise answers with interactive `Page X` citation tags.
+- **🎨 Sleek Dark Mode UI**: Minimalist single-page interface with a pure black background (`#000000`) and modern `Inter` typography.
+- **🔍 Source Inspection**: Expandable accordion allowing you to view exact page passages sent to Claude.
+- **🛡️ Built-in API Fallback**: Handles Anthropic model aliases gracefully with automatic fallback.
 
 ---
 
 ## 🛠️ Tech Stack
 
 - **Backend**: Python 3.10+, [FastAPI](https://fastapi.tiangolo.com/), Uvicorn
-- **PDF Extraction**: [PyMuPDF (fitz)](https://pymupdf.readthedocs.io/)
-- **Text Retrieval**: Custom In-Memory BM25 Ranker
-- **LLM Integration**: [Anthropic Claude SDK](https://github.com/anthropics/anthropic-sdk-python)
-- **Frontend**: HTML5, Vanilla CSS3 (Dark Theme `#000000`), JavaScript (Fetch API)
+- **PDF Processing**: [PyMuPDF (fitz)](https://pymupdf.readthedocs.io/)
+- **Search Engine**: In-Memory BM25 Ranker
+- **LLM Integration**: [Anthropic Claude Python SDK](https://github.com/anthropics/anthropic-sdk-python)
+- **Frontend**: HTML5, Vanilla CSS3 (Dark Theme), JavaScript (Fetch API)
 - **Deployment**: [Render.com](https://render.com/) Python Web Service
-
----
-
-## 🚀 How It Works
-
-```
-📄 PDF Upload ──> PyMuPDF Page Text Extraction ──> BM25 In-Memory Indexer (<0.05s)
-                                                                 │
-🔍 Question ─────> Top-K Context Retrieval ───────────────────────┤
-                                                                 ▼
-💬 Cited Answer <── Anthropic Claude API <── Prompt Engineering + Context
-```
-
-1. **Extract & Chunk**: PyMuPDF reads the uploaded PDF and splits it into overlapping ~1000-character passages tagged with page numbers.
-2. **Fast Indexing**: The BM25 algorithm indexes word frequencies across passages in **0.05s**.
-3. **Retrieve Context**: When you ask a question, BM25 retrieves the top relevant passages.
-4. **Generate Answer**: The retrieved context + your question are sent to Claude, which synthesizes an answer with exact page citations like `(p.3)`.
 
 ---
 
 ## 💻 Local Setup & Running
 
 ### 1. Prerequisites
-Ensure you have Python 3.10+ installed on your computer.
+Ensure you have Python 3.10+ installed on your system.
 
 ### 2. Clone Repository & Install Dependencies
 ```bash
@@ -56,7 +80,7 @@ cd pdf-reader
 pip install -r requirements.txt
 ```
 
-### 3. Run the Application
+### 3. Run Application
 ```bash
 python app.py
 ```
@@ -65,16 +89,14 @@ Open your browser and navigate to:
 
 ---
 
-## 🌐 Deploy to Render
+## 🌐 Deploying to Render
 
-1. Fork or push this repository to your GitHub account.
-2. Create a new **Web Service** on [Render.com](https://render.com/).
-3. Use the following settings:
-   - **Environment**: `Python`
+1. Click the **Deploy to Render** button above or connect your GitHub repository to Render.
+2. Select **Python Web Service** with the following settings:
    - **Build Command**: `pip install torch --index-url https://download.pytorch.org/whl/cpu && pip install -r requirements.txt`
    - **Start Command**: `python app.py`
-4. Add an **Environment Variable** (optional):
-   - Key: `ANTHROPIC_API_KEY` | Value: `your-sk-ant-api-key`
+3. Add an Environment Variable:
+   - `ANTHROPIC_API_KEY`: *your sk-ant-... key*
 
 ---
 
@@ -82,20 +104,20 @@ Open your browser and navigate to:
 
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
-| `GET` | `/` | Serves the single-page HTML/CSS/JS frontend interface. |
-| `POST` | `/api/upload` | Uploads a `.pdf` file and initializes the BM25 index. |
-| `POST` | `/api/query` | Sends a question, retrieves context, and returns Claude's answer with citations. |
+| `GET` | `/` | Renders the single-page HTML/CSS/JS frontend interface. |
+| `POST` | `/api/upload` | Uploads a `.pdf` file and creates the in-memory BM25 index. |
+| `POST` | `/api/query` | Queries retrieved passages with Claude and returns answers with page citations. |
 
 ---
 
-## 📁 Repository Structure
+## 📁 Project Structure
 
 ```text
 .
-├── app.py              # Main FastAPI application & RAG pipeline logic
+├── app.py              # Main FastAPI application, BM25 ranker, & Claude API integration
 ├── requirements.txt    # Python dependencies
-├── render.yaml         # Render Blueprint configuration file
-└── README.md           # Documentation
+├── render.yaml         # Render Blueprint deployment configuration
+└── README.md           # Documentation & project guide
 ```
 
 ---
