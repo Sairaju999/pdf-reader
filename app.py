@@ -28,7 +28,7 @@ def get_chroma_client():
     return chromadb.Client()
 
 
-def extract_chunks(file_bytes, chunk_size=800, overlap=150):
+def extract_chunks(file_bytes, chunk_size=1000, overlap=100):
     """Extract text from each page and split into overlapping chunks,
     keeping track of which page every chunk came from."""
     doc = fitz.open(stream=file_bytes, filetype="pdf")
@@ -48,7 +48,7 @@ def extract_chunks(file_bytes, chunk_size=800, overlap=150):
 
 
 def build_index(chunks, collection_name="pdf_qa"):
-    """Embed all chunks and store them in a fresh Chroma collection."""
+    """Embed all chunks in batches and store them in a fresh Chroma collection."""
     client = get_chroma_client()
     try:
         client.delete_collection(collection_name)
@@ -61,7 +61,15 @@ def build_index(chunks, collection_name="pdf_qa"):
     ids = [str(i) for i in range(len(chunks))]
     documents = [c["text"] for c in chunks]
     metadatas = [{"page": c["page"]} for c in chunks]
-    collection.add(ids=ids, documents=documents, metadatas=metadatas)
+
+    # Batch additions for faster CPU vector embedding
+    batch_size = 100
+    for i in range(0, len(chunks), batch_size):
+        collection.add(
+            ids=ids[i:i + batch_size],
+            documents=documents[i:i + batch_size],
+            metadatas=metadatas[i:i + batch_size]
+        )
     return collection
 
 
@@ -100,7 +108,7 @@ Question: {question}"""
     except Exception as e:
         err_msg = str(e)
         if "not_found_error" in err_msg or "404" in err_msg or "invalid_request_error" in err_msg:
-            # Automatic fallback to standard version model string if model name is rejected by API
+            # Fallback to standard model name string if model alias is not recognized by API key
             response = client.messages.create(
                 model="claude-3-5-sonnet-20241022",
                 max_tokens=1000,
