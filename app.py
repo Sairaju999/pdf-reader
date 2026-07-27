@@ -1,5 +1,13 @@
 import os
 import re
+
+try:
+    __import__('pysqlite3')
+    import sys
+    sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+except ImportError:
+    pass
+
 import fitz  # PyMuPDF
 import chromadb
 from chromadb.utils import embedding_functions
@@ -64,7 +72,7 @@ def retrieve(question, k=5, collection_name="pdf_qa"):
     return list(zip(docs, metas))
 
 
-def ask_claude(question, context_chunks, api_key, model="claude-sonnet-4-6"):
+def ask_claude(question, context_chunks, api_key, model="claude-3-5-sonnet-20241022"):
     """Send the retrieved chunks + question to Claude and get a cited answer."""
     client = Anthropic(api_key=api_key)
     context_str = "\n\n".join(f"[Page {m['page']}]: {d}" for d, m in context_chunks)
@@ -254,13 +262,13 @@ with gr.Blocks() as demo:
             model_input = gr.Dropdown(
                 label="Claude Model",
                 choices=[
-                    "claude-sonnet-4-6",
+                    "claude-3-5-sonnet-20241022",
                     "claude-3-5-haiku-20241022",
-                    "claude-3-5-sonnet-20240620",
-                    "claude-3-opus-20240229",
+                    "claude-3-7-sonnet-20250219",
                     "claude-3-haiku-20240307",
+                    "claude-3-opus-20240229",
                 ],
-                value="claude-sonnet-4-6"
+                value="claude-3-5-sonnet-20241022"
             )
             chunk_size_input = gr.Slider(
                 label="Chunk size (chars)",
