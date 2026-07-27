@@ -14,7 +14,15 @@ from chromadb.utils import embedding_functions
 from anthropic import Anthropic
 import gradio as gr
 
+import functools
+
 # ---------- Core pipeline ----------
+
+@functools.lru_cache(maxsize=1)
+def get_embedding_function():
+    return embedding_functions.SentenceTransformerEmbeddingFunction(
+        model_name="all-MiniLM-L6-v2"
+    )
 
 def get_chroma_client():
     return chromadb.Client()
@@ -47,9 +55,7 @@ def build_index(chunks, collection_name="pdf_qa"):
     except Exception:
         pass
 
-    ef = embedding_functions.SentenceTransformerEmbeddingFunction(
-        model_name="all-MiniLM-L6-v2"
-    )
+    ef = get_embedding_function()
     collection = client.create_collection(name=collection_name, embedding_function=ef)
 
     ids = [str(i) for i in range(len(chunks))]
@@ -62,9 +68,7 @@ def build_index(chunks, collection_name="pdf_qa"):
 def retrieve(question, k=5, collection_name="pdf_qa"):
     """Return the top-k most relevant chunks for a question."""
     client = get_chroma_client()
-    ef = embedding_functions.SentenceTransformerEmbeddingFunction(
-        model_name="all-MiniLM-L6-v2"
-    )
+    ef = get_embedding_function()
     collection = client.get_collection(name=collection_name, embedding_function=ef)
     results = collection.query(query_texts=[question], n_results=k)
     docs = results["documents"][0]
@@ -72,7 +76,7 @@ def retrieve(question, k=5, collection_name="pdf_qa"):
     return list(zip(docs, metas))
 
 
-def ask_claude(question, context_chunks, api_key, model="claude-3-5-sonnet-20241022"):
+def ask_claude(question, context_chunks, api_key, model="claude-sonnet-4-6"):
     """Send the retrieved chunks + question to Claude and get a cited answer."""
     client = Anthropic(api_key=api_key)
     context_str = "\n\n".join(f"[Page {m['page']}]: {d}" for d, m in context_chunks)
@@ -86,12 +90,24 @@ Context:
 
 Question: {question}"""
 
-    response = client.messages.create(
-        model=model,
-        max_tokens=1000,
-        messages=[{"role": "user", "content": prompt}],
-    )
-    return response.content[0].text
+    try:
+        response = client.messages.create(
+            model=model,
+            max_tokens=1000,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        return response.content[0].text
+    except Exception as e:
+        err_msg = str(e)
+        if "not_found_error" in err_msg or "404" in err_msg or "invalid_request_error" in err_msg:
+            # Automatic fallback to standard version model string if model name is rejected by API
+            response = client.messages.create(
+                model="claude-3-5-sonnet-20241022",
+                max_tokens=1000,
+                messages=[{"role": "user", "content": prompt}],
+            )
+            return response.content[0].text
+        raise e
 
 
 def format_citations(text):
@@ -290,13 +306,14 @@ with gr.Blocks() as demo:
             model_input = gr.Dropdown(
                 label="Claude Model",
                 choices=[
+                    "claude-sonnet-4-6",
                     "claude-3-5-sonnet-20241022",
                     "claude-3-5-haiku-20241022",
                     "claude-3-7-sonnet-20250219",
                     "claude-3-haiku-20240307",
                     "claude-3-opus-20240229",
                 ],
-                value="claude-3-5-sonnet-20241022"
+                value="claude-sonnet-4-6"
             )
             chunk_size_input = gr.Slider(
                 label="Chunk Size (characters)",
