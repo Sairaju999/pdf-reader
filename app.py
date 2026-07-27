@@ -122,37 +122,37 @@ def process_pdf(file, chunk_size):
         filename = os.path.basename(file_path)
         num_chunks = len(chunks)
         
-        # Build clean black theme metrics dashboard
+        # Build clean, humanized metrics dashboard
         metrics_html = f"""
         <div style="display: flex; gap: 12px; margin: 16px 0; flex-wrap: wrap;">
-            <div style="flex: 2; min-width: 200px; background: #09090b; border: 1px solid #27272a; border-radius: 8px; padding: 14px; text-align: center;">
-                <div style="font-size: 1rem; font-weight: 600; color: #f4f4f5; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">📄 {filename}</div>
-                <div style="font-size: 0.75rem; color: #a1a1aa; text-transform: uppercase; font-weight: 500; margin-top: 4px;">Document</div>
+            <div style="flex: 2; min-width: 200px; background: #121215; border: 1px solid #27272a; border-radius: 10px; padding: 14px 18px;">
+                <div style="font-size: 0.95rem; font-weight: 600; color: #f4f4f5; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">📄 {filename}</div>
+                <div style="font-size: 0.75rem; color: #a1a1aa; text-transform: uppercase; font-weight: 500; letter-spacing: 0.05em; margin-top: 4px;">Document File</div>
             </div>
-            <div style="flex: 1; min-width: 100px; background: #09090b; border: 1px solid #27272a; border-radius: 8px; padding: 14px; text-align: center;">
-                <div style="font-size: 1.5rem; font-weight: 700; color: #3b82f6;">{page_count}</div>
-                <div style="font-size: 0.75rem; color: #a1a1aa; text-transform: uppercase; font-weight: 500; margin-top: 4px;">Pages</div>
+            <div style="flex: 1; min-width: 100px; background: #121215; border: 1px solid #27272a; border-radius: 10px; padding: 14px; text-align: center;">
+                <div style="font-size: 1.4rem; font-weight: 700; color: #3b82f6;">{page_count}</div>
+                <div style="font-size: 0.75rem; color: #a1a1aa; text-transform: uppercase; font-weight: 500; letter-spacing: 0.05em; margin-top: 4px;">Total Pages</div>
             </div>
-            <div style="flex: 1; min-width: 100px; background: #09090b; border: 1px solid #27272a; border-radius: 8px; padding: 14px; text-align: center;">
-                <div style="font-size: 1.5rem; font-weight: 700; color: #3b82f6;">{num_chunks}</div>
-                <div style="font-size: 0.75rem; color: #a1a1aa; text-transform: uppercase; font-weight: 500; margin-top: 4px;">Text Chunks</div>
+            <div style="flex: 1; min-width: 100px; background: #121215; border: 1px solid #27272a; border-radius: 10px; padding: 14px; text-align: center;">
+                <div style="font-size: 1.4rem; font-weight: 700; color: #3b82f6;">{num_chunks}</div>
+                <div style="font-size: 0.75rem; color: #a1a1aa; text-transform: uppercase; font-weight: 500; letter-spacing: 0.05em; margin-top: 4px;">Extracted Chunks</div>
             </div>
         </div>
         """
         return metrics_html, gr.update(visible=True)
     except Exception as e:
-        error_html = f"<div style='color: #ef4444; font-weight: 500; padding: 12px; background: #270f0f; border-radius: 8px; border: 1px solid #7f1d1d;'>Error indexing PDF: {str(e)}</div>"
+        error_html = f"<div style='color: #f87171; font-weight: 500; padding: 14px; background: #270f0f; border-radius: 8px; border: 1px solid #7f1d1d;'>⚠️ Unable to process PDF: {str(e)}</div>"
         return error_html, gr.update(visible=False)
 
 
 def query_pdf(question, api_key, model, top_k):
     resolved_api_key = api_key.strip() or os.environ.get("ANTHROPIC_API_KEY", "")
     if not resolved_api_key:
-        warning_html = "<div style='color: #f59e0b; padding: 12px; font-weight: 500; background: #291e0a; border-radius: 8px; border: 1px solid #78350f;'>Please enter your Anthropic API key in the configuration panel.</div>"
+        warning_html = "<div style='color: #fbbf24; padding: 14px; font-weight: 500; background: #241a08; border-radius: 8px; border: 1px solid #78350f;'>⚠️ Please enter your Anthropic API key in the configuration sidebar to continue.</div>"
         return warning_html, ""
     
     if not question.strip():
-        return "<div style='color: #a1a1aa; padding: 8px;'>Please enter a question.</div>", ""
+        return "<div style='color: #a1a1aa; padding: 8px;'>Please enter a question to query your PDF.</div>", ""
         
     try:
         top_chunks = retrieve(question, k=int(top_k))
@@ -162,16 +162,16 @@ def query_pdf(question, api_key, model, top_k):
         sources_html = ""
         for doc, meta in top_chunks:
             sources_html += f"""
-            <div style="background: #09090b; border-left: 3px solid #3b82f6; padding: 12px 16px; margin-bottom: 10px; border-radius: 0 6px 6px 0; border: 1px solid #27272a; border-left-width: 3px;">
-                <div style="font-weight: 600; color: #60a5fa; font-size: 0.9rem; margin-bottom: 4px;">Page {meta['page']}</div>
-                <div style="font-size: 0.95rem; line-height: 1.5; color: #e4e4e7;">{doc}</div>
+            <div style="background: #121215; border-left: 3px solid #3b82f6; padding: 14px 18px; margin-bottom: 12px; border-radius: 0 8px 8px 0; border: 1px solid #27272a; border-left-width: 3px;">
+                <div style="font-weight: 600; color: #60a5fa; font-size: 0.875rem; margin-bottom: 6px;">Page {meta['page']}</div>
+                <div style="font-size: 0.925rem; line-height: 1.6; color: #e4e4e7;">{doc}</div>
             </div>
             """
         
         formatted_answer = f"""
-        <div style="background: #09090b; border: 1px solid #27272a; border-radius: 8px; padding: 20px; margin-top: 16px;">
-            <h3 style="margin-top: 0; color: #f4f4f5; font-size: 1.15rem; font-weight: 600; margin-bottom: 12px;">Answer</h3>
-            <div style="font-size: 1rem; line-height: 1.6; color: #f4f4f5;">
+        <div style="background: #121215; border: 1px solid #27272a; border-radius: 10px; padding: 22px; margin-top: 16px;">
+            <h3 style="margin-top: 0; color: #f4f4f5; font-size: 1.1rem; font-weight: 600; margin-bottom: 14px;">Answer</h3>
+            <div style="font-size: 1rem; line-height: 1.7; color: #f4f4f5;">
                 {format_citations(answer)}
             </div>
         </div>
@@ -179,7 +179,7 @@ def query_pdf(question, api_key, model, top_k):
         
         return formatted_answer, sources_html
     except Exception as e:
-        error_html = f"<div style='color: #ef4444; font-weight: 500; padding: 12px; background: #270f0f; border-radius: 8px; border: 1px solid #7f1d1d;'>Error: {str(e)}</div>"
+        error_html = f"<div style='color: #f87171; font-weight: 500; padding: 14px; background: #270f0f; border-radius: 8px; border: 1px solid #7f1d1d;'>⚠️ API Error: {str(e)}</div>"
         return error_html, ""
 
 # ---------- Styling ----------
@@ -188,14 +188,15 @@ custom_css = """
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 html, body, .gradio-container {
-    font-family: 'Inter', sans-serif !important;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
     background-color: #000000 !important;
     color: #f4f4f5 !important;
 }
 
+/* Header styling */
 .main-header {
     text-align: center;
-    padding: 1.75rem 1rem;
+    padding: 2rem 1rem;
     margin-bottom: 1.5rem;
     background: #09090b !important;
     border-radius: 12px;
@@ -206,7 +207,8 @@ html, body, .gradio-container {
     font-size: 2.5rem;
     font-weight: 700;
     color: #ffffff !important;
-    margin-bottom: 0.3rem;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.35rem;
 }
 
 .sub-title {
@@ -215,24 +217,57 @@ html, body, .gradio-container {
     font-weight: 400;
 }
 
+/* Override Gradio labels and cards to dark theme */
+.gradio-container .block, .gradio-container .form {
+    background-color: #09090b !important;
+    border-color: #27272a !important;
+}
+
+span.label-text, label.block label span, label span {
+    color: #e4e4e7 !important;
+    font-weight: 500 !important;
+    background-color: transparent !important;
+}
+
 /* Page Citations badge */
 .page-tag {
-    background-color: #18181b;
-    color: #60a5fa;
-    border: 1px solid #2563eb;
+    background-color: #1e3a8a;
+    color: #93c5fd;
+    border: 1px solid #3b82f6;
     padding: 2px 8px;
     border-radius: 6px;
-    font-size: 0.825rem;
+    font-size: 0.8rem;
     font-weight: 600;
     display: inline-block;
     margin: 2px 4px;
+}
+
+/* Inputs & buttons styling */
+input[type="text"], input[type="password"], textarea, select {
+    background-color: #18181b !important;
+    color: #f4f4f5 !important;
+    border: 1px solid #27272a !important;
+    border-radius: 8px !important;
+}
+
+button.primary {
+    background: #2563eb !important;
+    color: #ffffff !important;
+    font-weight: 600 !important;
+    border-radius: 8px !important;
+    border: none !important;
+    padding: 10px 20px !important;
+    transition: background 0.2s ease !important;
+}
+button.primary:hover {
+    background: #1d4ed8 !important;
 }
 """
 
 header_html = """
 <div class="main-header">
-    <div class="main-title">📄 PDF Reader</div>
-    <div class="sub-title">Upload a PDF, ask questions in plain English, and get answers with page citations.</div>
+    <div class="main-title">PDF Reader</div>
+    <div class="sub-title">Upload your PDF document to ask questions, search content, and get answers with page citations.</div>
 </div>
 """
 
@@ -250,7 +285,7 @@ with gr.Blocks() as demo:
                 label="Anthropic API Key",
                 type="password",
                 value=os.environ.get("ANTHROPIC_API_KEY", ""),
-                placeholder="Paste your sk-ant-... key here"
+                placeholder="sk-ant-..."
             )
             model_input = gr.Dropdown(
                 label="Claude Model",
@@ -264,14 +299,14 @@ with gr.Blocks() as demo:
                 value="claude-3-5-sonnet-20241022"
             )
             chunk_size_input = gr.Slider(
-                label="Chunk size (chars)",
+                label="Chunk Size (characters)",
                 minimum=400,
                 maximum=1500,
                 value=800,
                 step=100
             )
             top_k_input = gr.Slider(
-                label="Chunks retrieved per question",
+                label="Retrieved Segments Per Query",
                 minimum=3,
                 maximum=10,
                 value=5,
@@ -285,10 +320,13 @@ with gr.Blocks() as demo:
             
             # Question section
             with gr.Group(visible=False) as query_group:
-                question_input = gr.Textbox(label="Ask a question about this document", placeholder="Type your question here...")
-                submit_btn = gr.Button("Get Answer", variant="primary")
+                question_input = gr.Textbox(
+                    label="Ask a question about your PDF", 
+                    placeholder="e.g., What are the key findings or main topics in this document?"
+                )
+                submit_btn = gr.Button("Ask PDF Reader", variant="primary")
                 answer_panel = gr.HTML()
-                with gr.Accordion("Sources used", open=False):
+                with gr.Accordion("View Cited Sources", open=False):
                     sources_panel = gr.HTML()
                     
     # Event listeners
