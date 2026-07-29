@@ -343,8 +343,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 <div class="card">
                     <h2>⚙️ Settings</h2>
                     <div class="field">
-                        <label for="apiKey">Anthropic API Key</label>
-                        <input type="password" id="apiKey" placeholder="sk-ant-..." value="">
+                        <label for="apiKey">Anthropic API Key <span style="font-size:0.75rem; color:#4ade80; font-weight:normal;">(Default Active on Server)</span></label>
+                        <input type="password" id="apiKey" placeholder="Leave empty to use default server key" value="">
                     </div>
                     <div class="field">
                         <label for="model">Claude Model</label>
