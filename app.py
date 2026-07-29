@@ -86,8 +86,9 @@ def ask_claude(question, context_chunks, api_key, model="claude-sonnet-4-6"):
     client = Anthropic(api_key=api_key)
     context_str = "\n\n".join(f"[Page {c['page']}]: {c['text']}" for c in context_chunks)
 
-    prompt = f"""Answer the question using ONLY the context below. \
-Cite the page number for every claim like (p.X). \
+    prompt = f"""Answer the question clearly using ONLY the context below. \
+Organize your response with clean Markdown headers, bullet points, and bold key terms. \
+Cite page numbers cleanly at the end of relevant points like (p.X). Avoid repeating citations after every phrase. \
 If the answer isn't in the context, say so clearly instead of guessing.
 
 Context:
@@ -127,6 +128,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
@@ -137,6 +139,35 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             display: flex;
             justify-content: center;
             padding: 2rem 1rem;
+        }
+        #answerText h1, #answerText h2, #answerText h3 {
+            color: #ffffff;
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+        #answerText h1 { font-size: 1.25rem; border-bottom: 1px solid #27272a; padding-bottom: 0.3rem; }
+        #answerText h2 { font-size: 1.1rem; }
+        #answerText h3 { font-size: 1rem; }
+        #answerText p {
+            margin-bottom: 0.75rem;
+            line-height: 1.6;
+        }
+        #answerText ul, #answerText ol {
+            margin-left: 1.25rem;
+            margin-bottom: 0.75rem;
+        }
+        #answerText li {
+            margin-bottom: 0.35rem;
+        }
+        #answerText hr {
+            border: none;
+            border-top: 1px solid #27272a;
+            margin: 1rem 0;
+        }
+        #answerText strong {
+            color: #ffffff;
+            font-weight: 600;
         }
         .container {
             width: 100%;
@@ -495,7 +526,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 }
 
                 if (res.ok) {
-                    let formatted = data.answer.replace(/\((?:p\.|page\s+)(\d+)\)|\[(?:p\.|page\s+)(\d+)\]/gi, (match, p1, p2) => {
+                    let parsedMarkdown = (typeof marked !== 'undefined' && marked.parse) ? marked.parse(data.answer) : data.answer;
+                    let formatted = parsedMarkdown.replace(/\((?:p\.|page\s+)(\d+)\)|\[(?:p\.|page\s+)(\d+)\]/gi, (match, p1, p2) => {
                         const page = p1 || p2;
                         return `<span class="page-tag">Page ${page}</span>`;
                     });
