@@ -4,7 +4,6 @@
 
 🌐 **Live Application URL**: [https://pdf-reader-ik1o.onrender.com](https://pdf-reader-ik1o.onrender.com)
 
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/Sairaju999/pdf-reader)
 
 ---
 
